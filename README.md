@@ -21,3 +21,13 @@ The first run downloads the hand landmarker model into `models/`. Confirmed squa
 3. Each confirmed square appears in Rhino as a 12 mm tile, with its pre-firing clay outline (12% shrinkage example) and a size label.
 
 Run `watch_tiles.py` again to stop. `rhino/draw_tile.py` draws the latest `out/frame.json` once, without watching.
+
+## Gesture 02: sketch the design in the air
+
+```bash
+python gesture/air_sketch.py
+```
+
+Draw inside the tile square from gesture 01: **index finger only** draws, **index + middle** moves without drawing. Keys: `s` save, `u` undo, `c` clear, `q` quit. Saving writes `out/sketch.json` and `out/sketch.png`; with `rhino/watch_tiles.py` running, the sketch appears on the latest tile in Rhino (layer "Rajola sketch").
+
+Air-canvas idea inspired by [skmelwani/air-canvas-ai](https://github.com/skmelwani/air-canvas-ai) (no licence, so this is our own implementation).

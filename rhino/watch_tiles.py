@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Rajola live link: every confirmed gesture appears in Rhino automatically.
+"""Rajola live link: gestures appear in Rhino automatically.
 
 Run this once inside Rhino (_-RunPythonScript, or Rhino 8 ScriptEditor).
-It checks out/frame.json twice a second; whenever frame_square.py saves a new
-confirmed square, the tile is drawn (see draw_tile.py).
+It checks the out/ folder twice a second:
+  - out/frame.json changes  (gesture 01 confirmed)  -> a new tile is drawn
+  - out/sketch.json changes (gesture 02 saved)      -> the sketch is drawn on the latest tile
 Run it again to stop watching.
 """
 import json
@@ -18,12 +19,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.append(HERE)
 import draw_tile  # noqa: E402
+import draw_sketch  # noqa: E402
 
 try:
     from importlib import reload  # Rhino 8 (Python 3)
 except ImportError:
     pass  # Rhino 7 (IronPython 2.7) has reload built in
 reload(draw_tile)
+reload(draw_sketch)
 
 try:
     from Eto.Forms import UITimer
@@ -33,31 +36,43 @@ except ImportError:
     from Eto.Forms import UITimer
 
 KEY = "rajola_watch"
-PATH = os.path.join(draw_tile.repo_root(), "out", "frame.json")
+OUT = os.path.join(draw_tile.repo_root(), "out")
+WATCHED = {
+    "frame": os.path.join(OUT, "frame.json"),
+    "sketch": os.path.join(OUT, "sketch.json"),
+}
 
 
-def mtime():
-    return os.path.getmtime(PATH) if os.path.exists(PATH) else None
+def mtime(path):
+    return os.path.getmtime(path) if os.path.exists(path) else None
+
+
+def handle(name, data):
+    if name == "frame":
+        _, s, unit = draw_tile.draw_tile(data)
+        return "new tile {:.1f} {}".format(s, unit)
+    n = draw_sketch.draw_sketch(data)
+    return "sketch with {} strokes drawn on the tile".format(n)
 
 
 def tick(sender, e):
     state = sc.sticky.get(KEY)
     if not state:
         return
-    m = mtime()
-    if m is None or m == state["mtime"]:
-        return
-    time.sleep(0.2)  # let frame_square.py finish writing the file
-    state["mtime"] = m
-    sc.doc = Rhino.RhinoDoc.ActiveDoc
-    try:
-        with open(PATH) as f:
-            data = json.load(f)
-        _, s, unit = draw_tile.draw_tile(data)
-        sc.doc.Views.Redraw()
-        Rhino.RhinoApp.WriteLine("Rajola: new tile {:.1f} {}".format(s, unit))
-    except Exception as ex:
-        Rhino.RhinoApp.WriteLine("Rajola: could not draw tile: {}".format(ex))
+    for name, path in WATCHED.items():
+        m = mtime(path)
+        if m is None or m == state[name]:
+            continue
+        time.sleep(0.2)  # let the camera script finish writing the file
+        state[name] = m
+        sc.doc = Rhino.RhinoDoc.ActiveDoc
+        try:
+            with open(path) as f:
+                msg = handle(name, json.load(f))
+            sc.doc.Views.Redraw()
+            Rhino.RhinoApp.WriteLine("Rajola: " + msg)
+        except Exception as ex:
+            Rhino.RhinoApp.WriteLine("Rajola: could not update from {}: {}".format(name, ex))
 
 
 if KEY in sc.sticky:
@@ -68,6 +83,9 @@ else:
     timer = UITimer()
     timer.Interval = 0.5
     timer.Elapsed += tick
-    sc.sticky[KEY] = {"timer": timer, "mtime": mtime()}
+    state = {"timer": timer}
+    for name, path in WATCHED.items():
+        state[name] = mtime(path)
+    sc.sticky[KEY] = state
     timer.Start()
-    print("Rajola: watching {} - frame a square to add a tile".format(PATH))
+    print("Rajola: watching {} - frame a square, then sketch".format(OUT))
