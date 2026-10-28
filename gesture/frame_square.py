@@ -26,7 +26,7 @@ MODEL_URL = ("https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
              "hand_landmarker/float16/latest/hand_landmarker.task")
 OUT = ROOT / "out" / "frame.json"
 
-MARKER_MM = 50.0          # printed size of the ArUco marker
+MARKER_MM = 47.0          # printed size of the ArUco marker
 HOLD_SECONDS = 1.0        # how long the frame must stay still to confirm
 STILL_PX = 12             # max corner movement (pixels) that counts as "still"
 L_ANGLE_RANGE = (50, 130)  # thumb/index angle accepted as an L-shape (degrees)
@@ -68,15 +68,20 @@ def square_from_diagonal(p1, p2):
 
 
 def mm_per_px(frame, detector):
-    """Scale from the ArUco marker if visible, else None."""
+    """Scale (mm per pixel) and corner points of the ArUco marker, or (None, None).
+
+    Must run on the camera image BEFORE it is mirrored: a mirrored marker
+    is a different pattern and will not be recognised.
+    """
     if detector is None:
-        return None
-    corners, ids, _ = detector.detectMarkers(frame)
+        return None, None
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    corners, ids, _ = detector.detectMarkers(gray)
     if ids is None or len(corners) == 0:
-        return None
+        return None, None
     pts = corners[0][0]
     side_px = np.mean([np.linalg.norm(pts[i] - pts[(i + 1) % 4]) for i in range(4)])
-    return MARKER_MM / side_px
+    return float(MARKER_MM / side_px), pts   # plain float so it can be saved to JSON
 
 
 def main():
@@ -101,8 +106,16 @@ def main():
             ok, frame = cap.read()
             if not ok:
                 break
+            scale, marker_pts = mm_per_px(frame, aruco)   # before mirroring
             frame = cv2.flip(frame, 1)
             h, w = frame.shape[:2]
+            if marker_pts is not None:
+                mirrored = marker_pts.copy()
+                mirrored[:, 0] = w - 1 - mirrored[:, 0]
+                cv2.polylines(frame, [mirrored.astype(np.int32)], True, BLUE, 2)
+                cv2.putText(frame, f"marker {MARKER_MM:.0f} mm",
+                            tuple(mirrored.min(axis=0).astype(int) - [0, 10]),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, BLUE, 2)
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
             result = landmarker.detect_for_video(image, int((time.time() - t0) * 1000))
@@ -113,7 +126,8 @@ def main():
                     cv2.circle(frame, p, 7 if i in (4, 8) else 3,
                                BLUE if i in (4, 8) else INK, -1)
 
-            status = "Show two hands, each making an L"
+            status = "Show two hands, each making an L" + (
+                "" if scale else "  (no marker: sizes in px)")
             corners = [l_corner(hd, w, h) for hd in result.hand_landmarks]
             corners = [c for c in corners if c]
             if len(corners) == 2:
@@ -121,7 +135,6 @@ def main():
                 square = square_from_diagonal(p1, p2)
                 cv2.polylines(frame, [square.astype(np.int32)], True, BLUE, 3)
                 side_px = float(np.linalg.norm(p2 - p1) / math.sqrt(2))
-                scale = mm_per_px(frame, aruco)
                 size = f"{side_px * scale:.0f} mm" if scale else f"{side_px:.0f} px"
 
                 moved = last is None or np.max(np.abs(np.r_[p1, p2] - last)) > STILL_PX
