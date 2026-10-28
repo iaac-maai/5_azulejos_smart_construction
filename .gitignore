@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Rajola: downloaded models and generated outputs
+models/
+out/
