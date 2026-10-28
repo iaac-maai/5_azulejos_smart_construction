@@ -13,3 +13,11 @@ python gesture/frame_square.py     # gesture 01: frame a square with two hands (
 ```
 
 The first run downloads the hand landmarker model into `models/`. Confirmed squares are saved to `out/frame.json`, in millimetres when the marker is in view.
+
+## Gesture → Rhino
+
+1. Open Rhino and run `rhino/watch_tiles.py` once (`_-RunPythonScript`, or Rhino 8 ScriptEditor → Run).
+2. In Terminal, run `python gesture/frame_square.py` and frame a square with both hands.
+3. Each confirmed square appears in Rhino as a 12 mm tile, with its pre-firing clay outline (12% shrinkage example) and a size label.
+
+Run `watch_tiles.py` again to stop. `rhino/draw_tile.py` draws the latest `out/frame.json` once, without watching.
