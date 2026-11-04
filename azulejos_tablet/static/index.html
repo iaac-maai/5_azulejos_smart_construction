@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Azulejos">
+<meta name="theme-color" content="#1d1a17">
+<title>Azulejos tablet</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="bar">
+  <div class="group">
+    <span class="brand">Azulejos</span>
+    <button id="tileBtn" class="chip" aria-haspopup="dialog">150 × 150 × 12 mm</button>
+  </div>
+  <div class="seg kiln" id="kiln" role="group" aria-label="Kiln preview">
+    <button data-v="raw" class="on">Crudo<small>raw glaze</small></button>
+    <button data-v="fired">Cocido<small>after firing</small></button>
+  </div>
+  <div class="group">
+    <button id="undo" class="icon" title="Undo (two-finger tap)" aria-label="Undo">
+      <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    </button>
+    <button id="redo" class="icon" title="Redo (three-finger tap)" aria-label="Redo">
+      <svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+    </button>
+    <button id="fit" class="icon" title="Fit tile" aria-label="Fit tile">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+    <span id="rhino" class="status" title="Rhino link"><i></i><span>Rhino</span></span>
+  </div>
+</header>
+
+<div id="main">
+  <div id="rail">
+    <div class="vslider" id="sizeSlider" aria-label="Brush size">
+      <span class="vlabel">size</span>
+      <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+      <output>1.2 mm</output>
+    </div>
+    <button id="load" class="load" title="Pigment on the brush. Tap to dip.">
+      <span class="pot"><span class="level"></span></span>
+      <span class="vlabel">dip</span>
+    </button>
+    <div class="vslider" id="dilSlider" aria-label="Pigment concentration">
+      <span class="vlabel">pigment</span>
+      <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+      <output>100%</output>
+    </div>
+  </div>
+
+  <main id="stage">
+    <canvas id="view"></canvas>
+    <div id="toast" role="status"></div>
+  </main>
+
+  <aside id="panel">
+    <section id="editTools">
+      <h2>Editar <span>edit sketch</span></h2>
+      <div class="edit-actions">
+        <button id="eraserTool" type="button">Eraser</button>
+        <button id="clearSketch" type="button">Clear sketch</button>
+      </div>
+      <label class="eraser-label">Eraser width <output id="eraserValue">5 mm</output></label>
+      <input id="eraserSize" type="range" min="1" max="25" value="5" step="1">
+      <p class="hint">Eraser removes parts of strokes. Clear sketch keeps tiles already placed in the façade.</p>
+    </section>
+    <section>
+      <h2>Pinceles <span>brushes</span></h2>
+      <div id="brushes" class="brushes"></div>
+      <p id="brushHint" class="hint"></p>
+    </section>
+    <section>
+      <h2>Esmaltes <span>in-glaze pigments</span></h2>
+      <div id="glazes" class="glazes"></div>
+      <p id="glazeName" class="hint"></p>
+    </section>
+    <section>
+      <h2>Pasos <span>craft steps</span></h2>
+      <div id="steps" class="steps"></div>
+    </section>
+  </aside>
+</div>
+
+<div id="tilePop" class="pop" hidden>
+  <h3>Tile</h3>
+  <label>Side
+    <select id="tileSide">
+      <option value="100">100 mm</option>
+      <option value="150" selected>150 mm</option>
+      <option value="200">200 mm</option>
+    </select>
+  </label>
+  <label>Thickness
+    <select id="thickness">
+      <option value="8">8 mm</option>
+      <option value="10">10 mm</option>
+      <option value="12" selected>12 mm</option>
+      <option value="15">15 mm</option>
+      <option value="20">20 mm</option>
+    </select>
+  </label>
+  <label class="check"><input id="guides" type="checkbox" checked> Construction lines</label>
+  <button id="newTile" class="primary">New tile</button>
+  <p class="hint">Thickness changes the tile in Rhino right away. A new side length starts a new tile.</p>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

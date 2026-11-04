@@ -1,0 +1,7 @@
+# drawings, sessions and the Rhino file are generated locally
+out/
+__pycache__/
+*.pyc
+.DS_Store
+*.3dm.rhl
+*.3dmbak
