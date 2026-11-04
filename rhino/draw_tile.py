@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Rajola, gesture 01 -> Rhino: draw the confirmed tile from out/frame.json.
+"""Azulejos, gesture 01 -> Rhino: draw the confirmed tile from out/frame.json.
 
 Run inside Rhino (7 or 8):  command  _-RunPythonScript  and pick this file,
 or open it in Rhino 8's ScriptEditor and press Run.
 
 Each run adds one tile, placed to the right of earlier ones, so a series of
 test gestures stays visible side by side:
-  - layer "Rajola tiles":    the fired tile (side from the gesture, 12 mm thick)
-  - layer "Rajola wet size": the clay outline before firing (12% shrinkage)
-  - layer "Rajola labels":   a dot with the measured size
+  - layer "Azulejos tiles":  the fired tile (side from the gesture, 12 mm thick)
+  - layer "Azulejos wet size": the clay outline before firing (12% shrinkage)
+  - layer "Azulejos labels": a dot with the measured size
 """
 import json
 import os
@@ -20,9 +20,11 @@ SHRINKAGE = 0.12        # example clay shrinkage, wet -> fired (replace with wor
 GAP_MM = 60.0           # space between tiles from successive gestures
 KEEP_ROTATION = False   # True: keep the hands' rotation; False: axis-aligned tile
 
-TILE_LAYER = "Rajola tiles"
-WET_LAYER = "Rajola wet size"
-LABEL_LAYER = "Rajola labels"
+TILE_LAYER = "Azulejos tiles"
+WET_LAYER = "Azulejos wet size"
+LABEL_LAYER = "Azulejos labels"
+# layers from before the project was renamed (Rajola), still counted for placement
+OLD_TILE_LAYERS = ["Rajola tiles"]
 COBALT = (27, 42, 156)
 GREY = (120, 120, 130)
 
@@ -49,8 +51,17 @@ def ensure_layer(name, color):
     return name
 
 
+def tile_ids():
+    """All tiles, on the current and the old (Rajola) tile layer."""
+    ids = []
+    for name in [TILE_LAYER] + OLD_TILE_LAYERS:
+        if rs.IsLayer(name):
+            ids += rs.ObjectsByLayer(name) or []
+    return ids
+
+
 def next_origin():
-    ids = rs.ObjectsByLayer(TILE_LAYER) if rs.IsLayer(TILE_LAYER) else None
+    ids = tile_ids()
     if not ids:
         return 0.0, 0.0
     box = rs.BoundingBox(ids)
@@ -95,13 +106,13 @@ def draw_tile(data):
 def run():
     path = frame_path()
     if not path:
-        print("Rajola: no frame.json selected")
+        print("Azulejos: no frame.json selected")
         return
     with open(path) as f:
         data = json.load(f)
     _, s, unit = draw_tile(data)
     rs.ZoomExtents()
-    print("Rajola: drew a {:.1f} {} tile from {}".format(s, unit, path))
+    print("Azulejos: drew a {:.1f} {} tile from {}".format(s, unit, path))
 
 
 if __name__ == "__main__":

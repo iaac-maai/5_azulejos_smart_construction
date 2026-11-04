@@ -1,0 +1,3 @@
+# Optional: better transcripts for free phrasing (voice step 2).
+# If this fails to install, voice still works using the live transcript.
+faster-whisper>=1.0

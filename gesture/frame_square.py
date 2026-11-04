@@ -156,7 +156,7 @@ def main():
                 still_since, last = None, None
 
             cv2.putText(frame, status, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, BLUE, 2)
-            cv2.imshow("Rajola - gesture 01", frame)
+            cv2.imshow("Azulejos - gesture 01", frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     cap.release()
