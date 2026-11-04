@@ -1,0 +1,22 @@
+AZULEJOS FIX — replace files in your EXISTING azulejos_tablet folder
+
+1. STOP Python server with Ctrl+C in the terminal running py server.py.
+2. BACK UP your full project folder, especially out/azulejos_tablet.3dm
+   and out/facade_previews.json. DO NOT DELETE OR REPLACE out/.
+3. Copy server.py and rhino_link.py into your existing azulejos_tablet folder.
+4. Copy the 4 files inside static/ into your existing static/ folder.
+5. Leave Rhino 8 open with mcpstart, and restart: py server.py
+6. On iPad Safari, reload the page (if needed close tab and reopen LAN URL).
+
+TEST
+A. Draw two strokes. Erase one. Send to B3. B3 should have only the remaining mark.
+B. Select C3 -> Centre + 8. B3 should show a preview.
+C. Draw near the boundary, Send. Rhino marks should stay inside the 150mm cell.
+
+IMPORTANT
+- Placed facade tiles are NOT automatically updated by erasing; press Send again.
+- Existing old facade geometry is not deleted by installing this fix.
+- Previews for historical cells without a saved out/facade_previews.json entry
+  cannot be reconstructed from the iPad alone; resend those cells to create a snapshot.
+- The Rhino ribbon clipping uses a boundary-clamped mesh and polyline; verify
+  fine stroke outlines in Rhino before fabrication.
